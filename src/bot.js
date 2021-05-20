@@ -118,7 +118,7 @@ const stringifyCoinData = (obj) => {
     } else if (k === 'priceUSD') {
       str += `*$${obj[k]}*`
     } else if (k === 'priceBTC') {
-      str += ` | *${obj[k]} BTC\n*`
+      str += ` | *${obj[k]} ₿\n*`
     } else if (k === 'ath') {
       str += `${String(kk).toUpperCase()}:  *$${obj[k]}*\n`
     } else if (k === 'percentChange24h') {
