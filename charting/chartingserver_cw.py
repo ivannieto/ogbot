@@ -224,7 +224,7 @@ fig = go.Figure(go.Candlestick(x=df["CloseTime"],
 
 fig.update_layout(
     xaxis_rangeslider_visible=False,
-    title=f"{symbol}-{currency} {timeframe}"
+    title=f"{symbol}-{currency} {timeframe} | {exchange}"
 )
 filename = f"./charting/images/{symbol}{currency}{timeframe}{exchange}.png"
 print(f"Filename: {filename}")

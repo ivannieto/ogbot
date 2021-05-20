@@ -16,7 +16,7 @@ const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN
 const bot = new Telegraf(TELEGRAM_TOKEN)
 
 const SHOW_CHARTS_BUTTONS = Markup.inlineKeyboard([
-  Markup.button.callback('Chart USD', 'show_chart_usd'),
+  Markup.button.callback('Chart USDT', 'show_chart_usdt'),
   Markup.button.callback('Chart BTC', 'show_chart_btc'),
 ])
 
@@ -244,26 +244,30 @@ bot.hears(/(\/pr|\/pr@cryptog_bot) .*/, async (ctx) => {
  */
 const showChart = async (vsCurrency, exchange, ctx) => {
   await ctx.answerCbQuery(`Creating chart 4 ya, please wait a second`)
-  const symbol = ctx.update.callback_query.message.text.match(/^.*$/m)[0].trim()
+  const symbol = ctx.update.callback_query.message.text
+    .match(/^.*$/m)[0]
+    .trim()
+    .toLowerCase()
   const coinId = findCoinIdBySymbol(CoinsList, symbol.toLowerCase())
   console.log(`SYMBOL: ${symbol}`)
   console.log(`COIN ID: ${coinId}`)
   console.log(`EXCHANGE: ${exchange}`)
 
   checkIfCoinIsFound(ctx, coinId, symbol)
-  await createChart(symbol, vsCurrency, 1, exchange)
 
+  const tf = '1h'
   // Wait for chart to be generated 4s and then reply
+  const filename = await createChart(symbol, vsCurrency, tf, exchange)
   setTimeout(() => {
     return ctx.replyWithPhoto({
-      source: `charting/images/${symbol}${vsCurrency}1${exchange}.png`,
-      caption: `${coinId} ${vsCurrency} 1`,
+      source: filename,
+      caption: `${coinId} ${vsCurrency} ${tf} ${exchange}`,
     })
-  }, 1000)
+  }, 4000)
 }
 
-bot.action(/show_chart_usd/, async (ctx) => {
-  await showChart('usd', 'binance', ctx)
+bot.action(/show_chart_usdt/, async (ctx) => {
+  await showChart('usdt', 'binance', ctx)
 })
 
 bot.action(/show_chart_btc/, async (ctx) => {
@@ -277,14 +281,15 @@ bot.action(/show_chart_btc/, async (ctx) => {
  * @param {String} currency
  * @param {Number} tf
  */
-const createChart = async (coinId, currency, tf, exchange) => {
+const createChart = async (symbol, currency, tf, exchange) => {
   await shell.exec(
-    `python3 ./charting/chartingserver_cw.py ${coinId} ${currency} ${tf} ${exchange}`,
+    `python3 ./charting/chartingserver_cw.py ${symbol} ${currency} ${tf} ${exchange}`,
     function (code, output) {
       console.log('Exit code:', code)
       console.log('Program output:', output)
     },
   )
+  return `charting/images/${symbol}${currency}${tf}${exchange}.png`
 }
 
 /**
@@ -319,18 +324,13 @@ bot.hears(/(\/chart|\/chart@cryptog_bot) .*/, async (ctx) => {
 
   checkIfCoinIsFound(ctx, coinId, symbol)
 
-  await CoinGeckoClient.coins
-    .fetchMarketChart(coinId)
-    .then(() => {
-      createChart(symbol, currency, tf, exchange)
+  const filename = await createChart(symbol, currency, tf, exchange)
+  setTimeout(() => {
+    return ctx.replyWithPhoto({
+      source: filename,
+      caption: `${coinId} ${currency} ${tf} ${exchange}`,
     })
-
-    setTimeout(() => {
-      return ctx.replyWithPhoto({
-        source: `charting/images/${symbol}${currency}${tf}${exchange}.png`,
-        caption: `${coinId} ${currency} ${tf} ${exchange}`,
-      })
-    }, 4000)
+  }, 4000)
 })
 
 /**
