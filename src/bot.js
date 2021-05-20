@@ -242,30 +242,32 @@ bot.hears(/(\/pr|\/pr@cryptog_bot) .*/, async (ctx) => {
  * @param {String} vsCurrency
  * @param {Object} ctx
  */
-const showChart = async (vsCurrency, ctx) => {
+const showChart = async (vsCurrency, exchange, ctx) => {
   await ctx.answerCbQuery(`Creating chart 4 ya, please wait a second`)
   const symbol = ctx.update.callback_query.message.text.match(/^.*$/m)[0].trim()
   const coinId = findCoinIdBySymbol(CoinsList, symbol.toLowerCase())
   console.log(`SYMBOL: ${symbol}`)
   console.log(`COIN ID: ${coinId}`)
+  console.log(`EXCHANGE: ${exchange}`)
+
   checkIfCoinIsFound(ctx, coinId, symbol)
-  await createChart(coinId, vsCurrency, 1)
+  await createChart(symbol, vsCurrency, 1, exchange)
 
   // Wait for chart to be generated 4s and then reply
   setTimeout(() => {
     return ctx.replyWithPhoto({
-      source: `charting/images/${coinId}${vsCurrency}1.png`,
+      source: `charting/images/${symbol}${vsCurrency}1${exchange}.png`,
       caption: `${coinId} ${vsCurrency} 1`,
     })
   }, 1000)
 }
 
 bot.action(/show_chart_usd/, async (ctx) => {
-  await showChart('usd', ctx)
+  await showChart('usd', 'binance', ctx)
 })
 
 bot.action(/show_chart_btc/, async (ctx) => {
-  await showChart('btc', ctx)
+  await showChart('btc', 'binance', ctx)
 })
 
 /**
@@ -275,9 +277,9 @@ bot.action(/show_chart_btc/, async (ctx) => {
  * @param {String} currency
  * @param {Number} tf
  */
-const createChart = async (coinId, currency, tf) => {
+const createChart = async (coinId, currency, tf, exchange) => {
   await shell.exec(
-    `python3 ./charting/chartingserver.py ${coinId} ${currency} ${tf}`,
+    `python3 ./charting/chartingserver_cw.py ${coinId} ${currency} ${tf} ${exchange}`,
     function (code, output) {
       console.log('Exit code:', code)
       console.log('Program output:', output)
@@ -301,6 +303,7 @@ bot.hears(/(\/chart|\/chart@cryptog_bot) .*/, async (ctx) => {
   let symbol = chartArgs[1]
   let currency = chartArgs[2]
   let tf = chartArgs[3]
+  let exchange = chartArgs[4]
 
   if (symbol === undefined || currency === undefined || tf === undefined) {
     return ctx.replyWithHTML(
@@ -319,16 +322,15 @@ bot.hears(/(\/chart|\/chart@cryptog_bot) .*/, async (ctx) => {
   await CoinGeckoClient.coins
     .fetchMarketChart(coinId)
     .then(() => {
-      console.log(`${coinId} ${currency} ${tf}`)
-      createChart(coinId, currency, tf)
+      createChart(symbol, currency, tf, exchange)
     })
-    .then((ctx) => {
-      // Wait for chart to be generated 4s and then reply
+
+    setTimeout(() => {
       return ctx.replyWithPhoto({
-        source: `charting/images/${coinId}${currency}${tf}.png`,
-        caption: `${coinId} ${currency} ${tf}`,
+        source: `charting/images/${symbol}${currency}${tf}${exchange}.png`,
+        caption: `${coinId} ${currency} ${tf} ${exchange}`,
       })
-    })
+    }, 4000)
 })
 
 /**

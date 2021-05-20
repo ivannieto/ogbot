@@ -3,4 +3,4 @@ requests
 plotly
 psutil
 kaleido
-dash
+python-dotenv
