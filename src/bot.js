@@ -17,15 +17,15 @@ const bot = new Telegraf(TELEGRAM_TOKEN)
 
 const SHOW_CHARTS_BUTTONS = Markup.inlineKeyboard([
   Markup.button.callback('Chart USD', 'show_chart_usd'),
-  Markup.button.callback('Chart BTC', 'show_chart_btc')
+  Markup.button.callback('Chart BTC', 'show_chart_btc'),
 ])
 
 // -------------------------------
 
 /**
  * Capitalize a string
- * @param {String} str 
- * @returns 
+ * @param {String} str
+ * @returns
  */
 const capitalize = (str) => {
   return str.charAt(0).toUpperCase() + str.slice(1)
@@ -33,8 +33,8 @@ const capitalize = (str) => {
 
 /**
  * Sort keys in object
- * @param {Object} obj 
- * @returns 
+ * @param {Object} obj
+ * @returns
  */
 const sortKeys = (obj) => {
   return Object.assign(
@@ -49,12 +49,12 @@ const sortKeys = (obj) => {
 }
 
 /**
- * 
+ *
  * Returns the coinId for a given symbol (ticker)
- * 
- * @param {Array} coinsList 
- * @param {String} symbol 
- * @returns String 
+ *
+ * @param {Array} coinsList
+ * @param {String} symbol
+ * @returns String
  */
 const findCoinIdBySymbol = (coinsList, symbol) => {
   const results = coinsList.filter((coin) => coin['symbol'] === symbol)
@@ -82,9 +82,9 @@ const findCoinIdBySymbol = (coinsList, symbol) => {
 
 /**
  * Returns a sentence given a camelCase string
- * 
- * @param {String} word 
- * @returns 
+ *
+ * @param {String} word
+ * @returns
  */
 const fromCamelCaseToSentence = (word) =>
   word
@@ -93,12 +93,11 @@ const fromCamelCaseToSentence = (word) =>
     .replace(/\{2,}/g, ' ')
     .trim()
 
-
 /**
  * Returns the string for a given object containing Coin Data
- * 
- * @param {Object} obj 
- * @returns 
+ *
+ * @param {Object} obj
+ * @returns
  */
 const stringifyCoinData = (obj) => {
   let str = ''
@@ -239,9 +238,9 @@ bot.hears(/(\/pr|\/pr@cryptog_bot) .*/, async (ctx) => {
 
 /**
  * Displays a chart
- * 
- * @param {String} vsCurrency 
- * @param {Object} ctx 
+ *
+ * @param {String} vsCurrency
+ * @param {Object} ctx
  */
 const showChart = async (vsCurrency, ctx) => {
   await ctx.answerCbQuery(`Creating chart 4 ya, please wait a second`)
@@ -258,7 +257,7 @@ const showChart = async (vsCurrency, ctx) => {
       source: `charting/images/${coinId}${vsCurrency}1.png`,
       caption: `${coinId} ${vsCurrency} 1`,
     })
-  }, 4000)
+  }, 1000)
 }
 
 bot.action(/show_chart_usd/, async (ctx) => {
@@ -271,14 +270,14 @@ bot.action(/show_chart_btc/, async (ctx) => {
 
 /**
  * Creates a candle chart given 3 parameters
- * 
- * @param {String} coinId 
- * @param {String} currency 
- * @param {Number} tf 
+ *
+ * @param {String} coinId
+ * @param {String} currency
+ * @param {Number} tf
  */
 const createChart = async (coinId, currency, tf) => {
   await shell.exec(
-    `python3 ./charting/chartingserver.py ${coinId} ${currency} ${tf}`,
+    `python ./charting/chartingserver.py ${coinId} ${currency} ${tf}`,
     function (code, output) {
       console.log('Exit code:', code)
       console.log('Program output:', output)
@@ -317,18 +316,19 @@ bot.hears(/(\/chart|\/chart@cryptog_bot) .*/, async (ctx) => {
 
   checkIfCoinIsFound(ctx, coinId, symbol)
 
-  await CoinGeckoClient.coins.fetchMarketChart(coinId).then(() => {
-    console.log(`${coinId} ${currency} ${tf}`)
-    createChart(coinId, currency, tf)
-
-    // Wait for chart to be generated 4s and then reply
-    setTimeout(() => {
+  await CoinGeckoClient.coins
+    .fetchMarketChart(coinId)
+    .then(() => {
+      console.log(`${coinId} ${currency} ${tf}`)
+      createChart(coinId, currency, tf)
+    })
+    .then((ctx) => {
+      // Wait for chart to be generated 4s and then reply
       return ctx.replyWithPhoto({
         source: `charting/images/${coinId}${currency}${tf}.png`,
         caption: `${coinId} ${currency} ${tf}`,
       })
-    }, 4000)
-  })
+    })
 })
 
 /**
@@ -374,7 +374,6 @@ bot.hears(/(\/trending|\/trending@cryptog_bot)/, async (ctx) => {
     return ctx.replyWithMarkdown(`Top 10 Trending:\n\n${trendingRank}`)
   })
 })
-
 
 /**
  * DeFicommand
