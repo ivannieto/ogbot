@@ -278,7 +278,7 @@ bot.action(/show_chart_btc/, async (ctx) => {
  */
 const createChart = async (coinId, currency, tf) => {
   await shell.exec(
-    `python ./charting/chartingserver.py ${coinId} ${currency} ${tf}`,
+    `python3 ./charting/chartingserver.py ${coinId} ${currency} ${tf}`,
     function (code, output) {
       console.log('Exit code:', code)
       console.log('Program output:', output)
