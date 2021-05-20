@@ -4,7 +4,8 @@
   "description": "A bot to create crypto draws on Telegram for small communities",
   "main": "bot.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/bot.js"
   },
   "keywords": [
     "bot",
