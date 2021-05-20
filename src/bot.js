@@ -385,7 +385,15 @@ bot.hears(/(\/status|\/status@cryptog_bot)/, async (ctx) => {
           response['data']['quote']['USD']['total_market_cap'],
         )
         replyStr += `Total Market Cap: *${numberSuffix.format(totalMC)}*\n`
+        let altcoinMC = Number(
+          response['data']['quote']['USD']['altcoin_market_cap']
+        )
+
+        let btcMC = totalMC - altcoinMC
+        replyStr += `BTC Market Cap: *${numberSuffix.format(btcMC)}*\n`
         
+        replyStr += `Altcoin Market Cap: *${numberSuffix.format(altcoinMC)}*\n`
+
         let btcDom = Number(response['data']['btc_dominance'])
         replyStr += `BTC Dominance: *${btcDom.toFixed(2)}*\n`
 
