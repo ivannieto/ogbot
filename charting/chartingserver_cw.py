@@ -148,12 +148,20 @@ def get_better_after_period_based_on_timeframe(timeframe):
         return datetime.timestamp(four_hours_delta)
     if int(timeframe) <= 3600:
         daily_delta = now - timedelta(days=1)
-        return datetime.timestamp(daily_delta)        
-    if int(timeframe) > 3600 and int(timeframe) <= 86400:
-        weekly_delta = now - timedelta(days=7)
+        return datetime.timestamp(daily_delta)
+    if int(timeframe) > 3600 and int(timeframe) <= 7200:
+        weekly_delta = now - timedelta(days=7)           
+    if int(timeframe) > 7200 and int(timeframe) <= 43200:
+        weekly_delta = now - timedelta(days=14)
         return datetime.timestamp(weekly_delta)
-    if int(timeframe) > 86400:
-        thirty_days_delta = now - timedelta(days=30)
+    if int(timeframe) > 43200 and int(timeframe) <= 86400:
+        weekly_delta = now - timedelta(days=30)
+        return datetime.timestamp(weekly_delta)        
+    if int(timeframe) > 86400 and int(timeframe) <= 259200:
+        weekly_delta = now - timedelta(days=60)
+        return datetime.timestamp(weekly_delta)        
+    if int(timeframe) > 259200:
+        thirty_days_delta = now - timedelta(weeks=53)
         return datetime.timestamp(thirty_days_delta)
 
 
@@ -193,7 +201,6 @@ def url_build(symbol=symbol, currency=currency, timeframe=timeframe):
 
 response = requests.get(url_build())
 response_dict = json.loads(response.text)
-print(f"Rsponse: {response_dict}")
 print("Standard values retrieved: ", len(response_dict['result'][str(key_vals[timeframe])]))
 
 df = pd.DataFrame.from_dict(response_dict['result'][str(key_vals[timeframe])])
@@ -212,6 +219,8 @@ candle_columns = [
 df.columns = candle_columns
 df.head(2)
 
+closing_price = df["ClosePrice"].tail(1).iloc[0]
+
 df["CloseTime"] = pd.to_datetime(df["CloseTime"], unit='s')
 df[df.columns[1:5]] = df[df.columns[1:5]].astype("float")
 df[df.columns[:5]].info()
@@ -221,6 +230,8 @@ fig = go.Figure(go.Candlestick(x=df["CloseTime"],
                                high=df["HighPrice"],
                                low=df["LowPrice"],
                                close=df["ClosePrice"]))
+
+fig.add_hline(y=closing_price)
 
 fig.update_layout(
     xaxis_rangeslider_visible=False,
