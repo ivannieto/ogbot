@@ -1,0 +1,6 @@
+pandas
+requests
+plotly
+psutil
+kaleido
+dash

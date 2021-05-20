@@ -1,0 +1,34 @@
+{
+  "name": "cryptodrawbot",
+  "version": "1.0.0",
+  "description": "A bot to create crypto draws on Telegram for small communities",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "bot",
+    "telegram",
+    "cryptocurrency",
+    "draw",
+    "poll",
+    "sweepstakes"
+  ],
+  "author": "Ivan Nieto Sousa <ivan.nieto.sousa@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "body-parser": "^1.19.0",
+    "coingecko-api": "^1.0.10",
+    "dotenv": "^9.0.2",
+    "express": "^4.17.1",
+    "mongoose": "^5.12.9",
+    "node-telegram-bot-api": "^0.53.0",
+    "number-suffix": "^1.0.1",
+    "python-shell": "^3.0.0",
+    "shelljs": "^0.8.4",
+    "telegraf": "^4.3.0",
+    "thorify": "^1.5.4",
+    "web3": "^1.3.6"
+  }
+}
