@@ -72,7 +72,7 @@ const findCoinIdBySymbol = (coinsList, symbol) => {
         coinId = results[0]['id']
       }
     })
-  } else if (results.length === 1) {
+  } else if (results.length === 0) {
     return null
   } else {
     coinId = results[0]['id']
@@ -250,7 +250,7 @@ const showChart = async (vsCurrency, ctx) => {
   console.log(`SYMBOL: ${symbol}`)
   console.log(`COIN ID: ${coinId}`)
   checkIfCoinIsFound(ctx, coinId, symbol)
-  createChart(coinId, vsCurrency, 1)
+  await createChart(coinId, vsCurrency, 1)
 
   // Wait for chart to be generated 4s and then reply
   setTimeout(() => {
