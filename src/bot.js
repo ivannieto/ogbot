@@ -207,7 +207,7 @@ bot.hears(/(\/help|\/pricebot)/, (ctx) => {
   ctx.reply(strings.HELP)
 })
 
-bot.hears(/(\/pr|\/pr@cryptog_bot) .*/, async (ctx) => {
+bot.hears(/(\/p|\/pr|\/pr@cryptog_bot) .*/, async (ctx) => {
   let argument = ctx.message.text
   let symbol = argument.split(' ')[1].trim().toLowerCase()
   const coinId = findCoinIdBySymbol(CoinsList, symbol)
@@ -391,7 +391,7 @@ bot.hears(/(\/status|\/status@cryptog_bot)/, async (ctx) => {
 
         let btcMC = totalMC - altcoinMC
         replyStr += `BTC Market Cap: *${numberSuffix.format(btcMC)}*\n`
-        
+
         replyStr += `Altcoin Market Cap: *${numberSuffix.format(altcoinMC)}*\n`
 
         let btcDom = Number(response['data']['btc_dominance'])
