@@ -18,6 +18,7 @@ const bot = new Telegraf(TELEGRAM_TOKEN)
 const SHOW_CHARTS_BUTTONS = Markup.inlineKeyboard([
   Markup.button.callback('Chart USDT', 'show_chart_usdt'),
   Markup.button.callback('Chart BTC', 'show_chart_btc'),
+  Markup.button.callback('PUTO FARI', 'say_puto_fari')
 ])
 
 /* Example in Node.js ES6 using request-promise */
@@ -293,6 +294,10 @@ bot.action(/show_chart_usdt/, async (ctx) => {
 
 bot.action(/show_chart_btc/, async (ctx) => {
   await showChart('btc', 'binance', ctx)
+})
+
+bot.action(/say_puto_fari/, async (ctx) => {
+  await ctx.answerCbQuery(`Fari SUCKS`)
 })
 
 /**
