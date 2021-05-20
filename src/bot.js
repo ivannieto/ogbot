@@ -22,10 +22,20 @@ const SHOW_CHARTS_BUTTONS = Markup.inlineKeyboard([
 
 // -------------------------------
 
+/**
+ * Capitalize a string
+ * @param {String} str 
+ * @returns 
+ */
 const capitalize = (str) => {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
+/**
+ * Sort keys in object
+ * @param {Object} obj 
+ * @returns 
+ */
 const sortKeys = (obj) => {
   return Object.assign(
     ...Object.entries(obj)
@@ -38,6 +48,14 @@ const sortKeys = (obj) => {
   )
 }
 
+/**
+ * 
+ * Returns the coinId for a given symbol (ticker)
+ * 
+ * @param {Array} coinsList 
+ * @param {String} symbol 
+ * @returns String 
+ */
 const findCoinIdBySymbol = (coinsList, symbol) => {
   const results = coinsList.filter((coin) => coin['symbol'] === symbol)
   let coinId = null
@@ -50,9 +68,11 @@ const findCoinIdBySymbol = (coinsList, symbol) => {
     results.forEach((coin) => {
       if (String(coin['id']).includes('bsc')) {
         coinId = coin['id']
+      } else {
+        coinId = results[0]['id']
       }
     })
-  } else if (results.length === 0) {
+  } else if (results.length === 1) {
     return null
   } else {
     coinId = results[0]['id']
@@ -60,6 +80,12 @@ const findCoinIdBySymbol = (coinsList, symbol) => {
   return coinId
 }
 
+/**
+ * Returns a sentence given a camelCase string
+ * 
+ * @param {String} word 
+ * @returns 
+ */
 const fromCamelCaseToSentence = (word) =>
   word
     .replace(/([A-Z][a-z]+)/g, ' $1')
@@ -67,7 +93,14 @@ const fromCamelCaseToSentence = (word) =>
     .replace(/\{2,}/g, ' ')
     .trim()
 
-const stringifyObject = (obj) => {
+
+/**
+ * Returns the string for a given object containing Coin Data
+ * 
+ * @param {Object} obj 
+ * @returns 
+ */
+const stringifyCoinData = (obj) => {
   let str = ''
   Object.keys(obj).forEach((k) => {
     let kk = fromCamelCaseToSentence(k)
@@ -159,7 +192,7 @@ bot.hears(/(\/pr|\/pr@cryptog_bot) .*/, async (ctx) => {
   let symbol = argument.split(' ')[1].trim().toLowerCase()
   const coinId = findCoinIdBySymbol(CoinsList, symbol)
 
-  console.log(`coin id -> ${coinId}`)
+  console.log(`COIN ID: ${coinId}`)
 
   checkIfCoinIsFound(ctx, coinId, symbol)
 
@@ -199,17 +232,23 @@ bot.hears(/(\/pr|\/pr@cryptog_bot) .*/, async (ctx) => {
 
     console.log(coinData)
 
-    ctx.replyWithMarkdown(stringifyObject(coinData), SHOW_CHARTS_BUTTONS)
+    ctx.replyWithMarkdown(stringifyCoinData(coinData), SHOW_CHARTS_BUTTONS)
     // return ctx.replyWithHTML(htmlizeObject(coinData))
   })
 })
 
+/**
+ * Displays a chart
+ * 
+ * @param {String} vsCurrency 
+ * @param {Object} ctx 
+ */
 const showChart = async (vsCurrency, ctx) => {
   await ctx.answerCbQuery(`Creating chart 4 ya, please wait a second`)
   const symbol = ctx.update.callback_query.message.text.match(/^.*$/m)[0].trim()
-  console.log(`SYMBOL: ${symbol}`)
   const coinId = findCoinIdBySymbol(CoinsList, symbol.toLowerCase())
-  console.log(`coin id -> ${coinId}`)
+  console.log(`SYMBOL: ${symbol}`)
+  console.log(`COIN ID: ${coinId}`)
   checkIfCoinIsFound(ctx, coinId, symbol)
   createChart(coinId, vsCurrency, 1)
 
@@ -230,7 +269,13 @@ bot.action(/show_chart_btc/, async (ctx) => {
   await showChart('btc', ctx)
 })
 
-// Create chart command
+/**
+ * Creates a candle chart given 3 parameters
+ * 
+ * @param {String} coinId 
+ * @param {String} currency 
+ * @param {Number} tf 
+ */
 const createChart = async (coinId, currency, tf) => {
   await shell.exec(
     `python ./charting/chartingserver.py ${coinId} ${currency} ${tf}`,
@@ -241,6 +286,9 @@ const createChart = async (coinId, currency, tf) => {
   )
 }
 
+/**
+ * Charting command
+ */
 bot.hears(/(\/chart|\/chart@cryptog_bot) .*/, async (ctx) => {
   /**
    * Candle’s body (tf):
@@ -283,6 +331,9 @@ bot.hears(/(\/chart|\/chart@cryptog_bot) .*/, async (ctx) => {
   })
 })
 
+/**
+ * Market Status command
+ */
 bot.hears(/(\/status|\/status@cryptog_bot)/, async (ctx) => {
   let files = fs.readdirSync('./src/assets/img/up/')
   let chosenFile = files[Math.floor(Math.random() * files.length)]
@@ -302,6 +353,9 @@ bot.hears(/(\/status|\/status@cryptog_bot)/, async (ctx) => {
   })
 })
 
+/**
+ * Trending command
+ */
 bot.hears(/(\/trending|\/trending@cryptog_bot)/, async (ctx) => {
   // Add /search/trending endpoint ad-hoc
   CoinGecko.prototype.trending = () => {
@@ -321,6 +375,10 @@ bot.hears(/(\/trending|\/trending@cryptog_bot)/, async (ctx) => {
   })
 })
 
+
+/**
+ * DeFicommand
+ */
 bot.hears(/(\/df|\/df@cryptog_bot)/, async (ctx) => {
   CoinGecko.prototype.defi = () => {
     const path = `/global/decentralized_finance_defi`
