@@ -2,23 +2,25 @@ const { Telegraf, Markup } = require('telegraf')
 const NumberSuffix = require('number-suffix')
 const strings = require('./stringsFile')
 const CoinGecko = require('coingecko-api')
-
 const CoinGeckoClient = new CoinGecko()
 const CoinsList = require('./coins').COINS
 const CoinData = require('./models/CoinData')
 const numberSuffix = new NumberSuffix({ style: 'abbreviation', precision: 2 })
 const shell = require('shelljs')
 const fs = require('fs')
+const rp = require('request-promise')
 
 require('dotenv').config()
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN
-
+const CMC_API_KEY = process.env.CMC_API_KEY
 const bot = new Telegraf(TELEGRAM_TOKEN)
 
 const SHOW_CHARTS_BUTTONS = Markup.inlineKeyboard([
   Markup.button.callback('Chart USDT', 'show_chart_usdt'),
   Markup.button.callback('Chart BTC', 'show_chart_btc'),
 ])
+
+/* Example in Node.js ES6 using request-promise */
 
 // -------------------------------
 
@@ -151,7 +153,7 @@ const stringifyCoinData = (obj) => {
       str += `Platform:  *${obj[k]}*\n`
     } else if (k === 'markets') {
       str += `Markets:  *${obj[k]}*\n`
-    }  else {
+    } else {
       str += `${kk}:   *${obj[k]}*\n`
     }
   })
@@ -174,8 +176,8 @@ const checkIfCoinIsFound = (ctx, coinId, symbol) => {
   }
 }
 
-const onlyUnique = (value, index, self) => { 
-  return self.indexOf(value) === index;
+const onlyUnique = (value, index, self) => {
+  return self.indexOf(value) === index
 }
 
 /**
@@ -184,10 +186,10 @@ const onlyUnique = (value, index, self) => {
 const getCoinMarkets = (response) => {
   let tickers = response['tickers']
   let markets = []
-  tickers.forEach(ticker => {
+  tickers.forEach((ticker) => {
     markets.push(ticker['market']['name'])
   })
-  let uniqueMarkets = markets.filter(onlyUnique).slice(0,10).join(', ')
+  let uniqueMarkets = markets.filter(onlyUnique).slice(0, 10).join(', ')
   console.log(uniqueMarkets)
   return uniqueMarkets + '...'
 }
@@ -358,7 +360,15 @@ bot.hears(/(\/chart|\/chart@cryptog_bot) .*/, async (ctx) => {
 bot.hears(/(\/status|\/status@cryptog_bot)/, async (ctx) => {
   let files = fs.readdirSync('./src/assets/img/up/')
   let chosenFile = files[Math.floor(Math.random() * files.length)]
-
+  const requestOptions = {
+    method: 'GET',
+    uri: 'https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest',
+    headers: {
+      'X-CMC_PRO_API_KEY': CMC_API_KEY,
+    },
+    json: true,
+    gzip: true,
+  }
   await CoinGeckoClient.global().then((res) => {
     let data = res['data']['data']
     if (data['market_cap_change_percentage_24h_usd'] > 0) {
@@ -366,11 +376,33 @@ bot.hears(/(\/status|\/status@cryptog_bot)/, async (ctx) => {
     } else {
       ctx.replyWithSticker({ source: `./src/assets/img/down/${chosenFile}` })
     }
-    return ctx.replyWithMarkdown(
-      `Total Market Cap\n24h% Change: *${Number(
-        data['market_cap_change_percentage_24h_usd'],
-      ).toFixed(2)}%*`,
-    )
+
+    rp(requestOptions)
+      .then((response) => {
+        console.log('API call response:', response)
+        let replyStr = ``
+        let totalMC = Number(
+          response['data']['quote']['USD']['total_market_cap'],
+        )
+        replyStr += `Total Market Cap: *${numberSuffix.format(totalMC)}*\n`
+        
+        let btcDom = Number(response['data']['btc_dominance'])
+        replyStr += `BTC Dominance: *${btcDom.toFixed(2)}*\n`
+
+        let ethDom = Number(response['data']['eth_dominance'])
+        replyStr += `ETH Dominance: *${ethDom.toFixed(2)}*\n`
+        
+        let altsDom = 100 - (btcDom + ethDom)
+        replyStr += `Alts Dominance: *${altsDom.toFixed(2)}*\n`
+        
+        let percentChange = Number(data['market_cap_change_percentage_24h_usd'])
+        replyStr += `24h% Change: *${percentChange.toFixed(2)}%*\n`
+                
+        return ctx.replyWithMarkdown(replyStr)
+      })
+      .catch((err) => {
+        console.log('API call error:', err.message)
+      })
   })
 })
 
@@ -419,6 +451,13 @@ bot.hears(/(\/df|\/df@cryptog_bot)/, async (ctx) => {
     )}*\n`
     return ctx.replyWithMarkdown(`DeFi data:\n\n${defiResponse}`)
   })
+})
+
+/**
+ * Domination BTC
+ */
+bot.hears(/(\/dom|\/dom@cryptog_bot)/, async (ctx) => {
+  console.log()
 })
 
 bot.launch()
