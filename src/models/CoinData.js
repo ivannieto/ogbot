@@ -14,6 +14,7 @@ class CoinData {
   contractAddress = null
   homepage = null
   platform = null
+  markets = []
 }
 
 module.exports = CoinData

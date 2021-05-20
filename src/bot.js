@@ -149,14 +149,15 @@ const stringifyCoinData = (obj) => {
       str += `URL:  *${obj[k][0]}*\n`
     } else if (k === 'platform') {
       str += `Platform:  *${obj[k]}*\n`
-    } else {
+    } else if (k === 'markets') {
+      str += `Markets:  *${obj[k]}*\n`
+    }  else {
       str += `${kk}:   *${obj[k]}*\n`
     }
   })
 
-  str = str.replace(/thumb:.*\n/, '').substr(0)
-
-  return str
+  // return dropping "thumb:" line
+  return str.replace(/thumb:.*\n/, '').substr(0)
 }
 
 const checkIfCoinIsFound = (ctx, coinId, symbol) => {
@@ -171,6 +172,24 @@ const checkIfCoinIsFound = (ctx, coinId, symbol) => {
       caption: 'BRAH',
     })
   }
+}
+
+const onlyUnique = (value, index, self) => { 
+  return self.indexOf(value) === index;
+}
+
+/**
+ * Get coin markets
+ */
+const getCoinMarkets = (response) => {
+  let tickers = response['tickers']
+  let markets = []
+  tickers.forEach(ticker => {
+    markets.push(ticker['market']['name'])
+  })
+  let uniqueMarkets = markets.filter(onlyUnique).slice(0,10).join(', ')
+  console.log(uniqueMarkets)
+  return uniqueMarkets + '...'
 }
 
 // -------------------------------------------------
@@ -228,7 +247,7 @@ bot.hears(/(\/pr|\/pr@cryptog_bot) .*/, async (ctx) => {
     coinData.homepage = res['links']['homepage'].filter((e) => e) || 'N/D'
     coinData.contractAddress = res['contract_address'] || 'N/D'
     coinData.platform = res['asset_platform_id'] || 'N/D'
-
+    coinData.markets = getCoinMarkets(res)
     console.log(coinData)
 
     ctx.replyWithMarkdown(stringifyCoinData(coinData), SHOW_CHARTS_BUTTONS)
