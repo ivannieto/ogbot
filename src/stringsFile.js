@@ -9,11 +9,7 @@ Available commands:
 /df - Displays DeFi data
 /trending - Displays trending coins data
 
-1 - 2 days: 30 minutes bars
-3 - 30 days: 4 hours bars
-31 and before: 4 days bars
-
-This bot makes use of Coingecko API to retrieve data.`
+This bot makes use of Coingecko API to retrieve data and Cryptowat.ch API to retrieve OHLC data.`
 
 module.exports.HELP_CREATE_DRAW = `Ok, let's start
 1. We create an address for you if you don't have it yet
