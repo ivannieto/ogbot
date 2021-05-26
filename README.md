@@ -1,6 +1,6 @@
 # OG Bot
 
-A telegram bot to retrieve cryptocurrencies data using the CoinGecko API and Telegraf. 
+A telegram bot to retrieve cryptocurrencies data using different data APIs and telegraf.js. 
 
 It also uses Plotly in Python to generate charts based on OHLC data extracted from API.
 
